@@ -81,7 +81,7 @@ namespace GeneticSearch
             return data;
         }
 
-        // Главный обработчик команд, выполняющий чтение и запись «на лету»
+        // Главный обработчик команд, выполняющий чтение и запись
         static void CommandHandler(List<GeneticData> proteins, string commandsFilename, string outputFilename)
         {
             if (!File.Exists(commandsFilename))
@@ -93,7 +93,7 @@ namespace GeneticSearch
             using (StreamReader reader = new StreamReader(commandsFilename))
             using (StreamWriter writer = new StreamWriter(outputFilename, false, Encoding.UTF8))
             {
-                writer.WriteLine("Ivan Ivanov"); // Замените на ваше имя при сдаче
+                writer.WriteLine("Округ Максим"); 
                 writer.WriteLine("Genetic Searching");
                 writer.WriteLine("--------------------------------------------------------------------------");
 
