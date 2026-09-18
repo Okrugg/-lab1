@@ -95,7 +95,7 @@ namespace GeneticSearch
             using (StreamWriter writer = new StreamWriter(outputFilename, false)) 
             {
                 // Заголовок выходного файла
-                writer.WriteLine("Иван Иванов"); // ТУТ НАПИШИ СВОЕ ИМЯ И ФАМИЛИЮ
+                writer.WriteLine("Округ Максим"); 
                 writer.WriteLine("Genetic Searching");
 
                 for (int i = 0; i < commands.Count; i++)
