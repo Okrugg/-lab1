@@ -97,6 +97,7 @@ namespace GeneticSearch
                 // Заголовок выходного файла
                 writer.WriteLine("Округ Максим"); 
                 writer.WriteLine("Genetic Searching");
+                
 
                 for (int i = 0; i < commands.Count; i++)
                 {
@@ -223,7 +224,7 @@ namespace GeneticSearch
             }
 
             // Ищем все файлы команд вида "commands.X.txt"
-            string commandFiles = Directory.GetFiles(targetDirectory, "commands.*.txt");
+            string[] commandFiles = Directory.GetFiles(targetDirectory, "commands.*.txt");
 
             if (commandFiles.Length == 0)
             {
@@ -245,24 +246,24 @@ namespace GeneticSearch
                     string index = match.Groups[1].Value;
                     string sequenceFile = Path.Combine(targetDirectory, $"sequences.{index}.txt");
                     string outputFile = Path.Combine(targetDirectory, $"genedata.{index}.txt");
-Console.WriteLine($"\n=== Обработка набора файлов №{index} ===");
-
-if (File.Exists(sequenceFile))
-{
-List data = ReadData(sequenceFile);
-List commands = ReadCommands(commandFile);
-CommandHandler(data, commands, outputFile);
+                    Console.WriteLine($"\n=== Обработка набора файлов №{index} ===");
+                    if (File.Exists(sequenceFile))
+                    {
+                        
+List<Protein> data = ReadData(sequenceFile);
+List<Command> commands = ReadCommands(commandFile);
+                    
+                CommandHandler(data, commands, outputFile);
 Console.WriteLine($"Успешно! Результаты перезаписаны в: {Path.GetFileName(outputFile)}");
-}
-else
-{
-Console.WriteLine($"Предупреждение: Файл sequences.{index}.txt не найден.");
-}
+                    }
+                    else
+                    {
+                        
+                    Console.WriteLine($"Предупреждение: Файл sequences.{index}.txt не найден.");
+                    }
                 }
             }
             Console.WriteLine("\nВсе доступные тесты успешно обработаны!");
         }
     }
 }
-
-
