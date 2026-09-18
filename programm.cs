@@ -2,251 +2,267 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 
 namespace GeneticSearch
 {
     class Program
     {
-        // Структура для хранения данных о белках
-        struct GeneticData
+        struct Protein
         {
-            public string protein;     // название белка
+            public string name;        // название белка
             public string organism;    // название организма
-            public string amino_acids; // цепочка аминокислот 
+            public string amino_acids; // раскодированная цепочка аминокислот
         }
 
-        // Исправленный метод декодирования RLE (поддерживает многозначные числа, например 12A)
-        static string RLDecoding(string amino_acids)
+        struct Command
+        {
+            public string name;
+            public string parameter1;
+            public string parameter2;
+        }
+
+        // Метод декодирования RLE (например, 3Q -> QQQ)
+        static string Decoding(string amino_acids)
         {
             if (string.IsNullOrEmpty(amino_acids)) return string.Empty;
 
-            StringBuilder decoded = new StringBuilder();
-            
+            string decoded = string.Empty;
             for (int i = 0; i < amino_acids.Length; i++)
             {
-                // Если встретили цифру — собираем всё число целиком
-                if (char.IsDigit(amino_acids[i]))
+                char ch = amino_acids[i];
+                if (char.IsDigit(ch))
                 {
-                    StringBuilder numberBuilder = new StringBuilder();
-                    while (i < amino_acids.Length && char.IsDigit(amino_acids[i]))
+                    int count = ch - '0'; // перевод символа цифры в int
+                    char letter = amino_acids[i + 1];
+                    // Добавляем count - 1 букв, так как одна буква добавится на следующем шаге цикла
+                    for (int j = 1; j < count; j++)
                     {
-                        numberBuilder.Append(amino_acids[i]);
-                        i++;
+                        decoded += letter;
                     }
-                    
-                    int count = int.Parse(numberBuilder.ToString());
-                    char letter = amino_acids[i]; // Текущий символ — это сама аминокислота
-
-                    decoded.Append(letter, count);
                 }
                 else
                 {
-                    decoded.Append(amino_acids[i]);
+                    decoded += ch;
                 }
             }
-            return decoded.ToString();
+            return decoded;
         }
 
-        // Метод для чтения базы белков из файла
-        static List<GeneticData> ReadData(string filename)
+        static List<Command> ReadCommands(string filename)
         {
-            List<GeneticData> data = new List<GeneticData>();
+            List<Command> commands = new List<Command>();
+            if (!File.Exists(filename)) return commands;
 
-            if (!File.Exists(filename))
+            foreach (var line in File.ReadLines(filename))
             {
-                Console.WriteLine($"Ошибка: Файл данных {filename} не найден!");
-                return data;
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                string[] parts = line.Split('\t');
+
+                Command command;
+                command.name = parts[0].Trim();
+                command.parameter1 = parts.Length > 1 ? parts[1].Trim() : string.Empty;
+                command.parameter2 = parts.Length > 2 ? parts[2].Trim() : string.Empty;
+                commands.Add(command);
             }
+            return commands;
+        }
 
-            using (StreamReader reader = new StreamReader(filename))
+        static List<Protein> ReadData(string filename)
+        {
+            List<Protein> data = new List<Protein>();
+            if (!File.Exists(filename)) return data;
+
+            foreach (var line in File.ReadLines(filename))
             {
-                while (!reader.EndOfStream)
-                {
-                    string line = reader.ReadLine() ?? string.Empty;
-                    if (string.IsNullOrWhiteSpace(line)) continue;
+                if (string.IsNullOrWhiteSpace(line)) continue;
+                string[] parts = line.Split('\t');
+                if (parts.Length < 3) continue;
 
-                    // Разделяем строку по табуляции
-                    string[] parts = line.Split('\t');
-                    if (parts.Length >= 3)
-                    {
-                        GeneticData protein;
-                        protein.protein = parts[0];
-                        protein.organism = parts[1];
-                        protein.amino_acids = parts[2];
-                        data.Add(protein);
-                    }
-                }
+                Protein protein;
+                protein.name = parts[0].Trim();
+                protein.organism = parts[1].Trim();
+                // Сразу декодируем последовательность при чтении из файла!
+                protein.amino_acids = Decoding(parts[2].Trim());
+                data.Add(protein);
             }
             return data;
         }
 
-        // Главный обработчик команд, выполняющий чтение и запись
-        static void CommandHandler(List<GeneticData> proteins, string commandsFilename, string outputFilename)
+        static void CommandHandler(List<Protein> proteins, List<Command> commands, string outputFilename)
         {
-            if (!File.Exists(commandsFilename))
+            // Открываем существующий файл genedata.X.txt на перезапись
+            using (StreamWriter writer = new StreamWriter(outputFilename, false)) 
             {
-                Console.WriteLine($"Ошибка: Файл команд {commandsFilename} не найден!");
-                return;
-            }
-
-            using (StreamReader reader = new StreamReader(commandsFilename))
-            using (StreamWriter writer = new StreamWriter(outputFilename, false, Encoding.UTF8))
-            {
-                writer.WriteLine("Округ Максим"); 
+                // Заголовок выходного файла
+                writer.WriteLine("Иван Иванов"); // ТУТ НАПИШИ СВОЕ ИМЯ И ФАМИЛИЮ
                 writer.WriteLine("Genetic Searching");
-                writer.WriteLine("--------------------------------------------------------------------------");
 
-                int commandCounter = 1;
-
-                while (!reader.EndOfStream)
+                for (int i = 0; i < commands.Count; i++)
                 {
-                    string line = reader.ReadLine() ?? string.Empty;
-                    if (string.IsNullOrWhiteSpace(line)) continue;
+                    Command cmd = commands[i];
+                    string num = (i + 1).ToString("D3"); // Форматирование в 001, 002 и т.д.
 
-                    string[] parts = line.Split('\t');
-                    string cmdName = parts[0];
-                    string p1 = parts.Length > 1 ? parts[1] : string.Empty;
-                    string p2 = parts.Length > 2 ? parts[2] : string.Empty;
+                    writer.WriteLine("--------------------------------------------------------------------------");
 
-                    string cmdNum = commandCounter.ToString("D3");
-                    commandCounter++;
-
-                    if (cmdName == "search")
+                    if (cmd.name == "search")
                     {
-                        string decodedTarget = RLDecoding(p1);
-                        writer.WriteLine($"{cmdNum}   search   {decodedTarget} ");
-                        writer.WriteLine("organism\t\t\tprotein ");
+                        // Текст поиска в командах тоже может быть в RLE (например FK3I), декодируем его
+                        string searchPattern = Decoding(cmd.parameter1);
+                        writer.WriteLine($"{num}   search   {searchPattern}");
+                        writer.WriteLine("organism\t\t\t\tprotein");
 
                         bool found = false;
-                        foreach (var protein in proteins)
+                        foreach (var p in proteins)
                         {
-                            string decodedSequence = RLDecoding(protein.amino_acids);
-                            if (decodedSequence.Contains(decodedTarget))
+                            if (p.amino_acids.Contains(searchPattern))
                             {
-                                writer.WriteLine($"{protein.organism}\t\t{protein.protein}");
+                                writer.WriteLine($"{p.organism}\t\t{p.name}");
                                 found = true;
                             }
                         }
-
                         if (!found)
                         {
                             writer.WriteLine("NOT FOUND");
                         }
-                        writer.WriteLine("--------------------------------------------------------------------------");
                     }
-                    else if (cmdName == "diff")
+                    else if (cmd.name == "diff")
                     {
-                        writer.WriteLine($"{cmdNum}   diff   {p1}   {p2} ");
-                        writer.WriteLine("amino-acids difference: ");
+                        writer.WriteLine($"{num}   diff   {cmd.parameter1}   {cmd.parameter2}");
+                        writer.WriteLine("amino-acids difference:");
 
-                        var protein1 = proteins.FirstOrDefault(p => p.protein == p1);
-                        var protein2 = proteins.FirstOrDefault(p => p.protein == p2);
+                        Protein? p1 = proteins.Any(p => p.name == cmd.parameter1) ? proteins.First(p => p.name == cmd.parameter1) : (Protein?)null;
+                        Protein? p2 = proteins.Any(p => p.name == cmd.parameter2) ? proteins.First(p => p.name == cmd.parameter2) : (Protein?)null;
 
-                        bool p1Missing = string.IsNullOrEmpty(protein1.protein);
-                        bool p2Missing = string.IsNullOrEmpty(protein2.protein);
-
-                        if (p1Missing || p2Missing)
+                        if (p1 == null || p2 == null)
                         {
-                            List<string> missingProteins = new List<string>();
-                            if (p1Missing) missingProteins.Add(p1);
-                            if (p2Missing) missingProteins.Add(p2);
-
-                            writer.WriteLine("MISSING: " + string.Join(", ", missingProteins));
+                            string missing = "MISSING:";
+                            if (p1 == null) missing += " " + cmd.parameter1;
+                            if (p2 == null) missing += " " + cmd.parameter2;
+                            writer.WriteLine(missing);
                         }
                         else
                         {
-                            string seq1 = RLDecoding(protein1.amino_acids);
-                            string seq2 = RLDecoding(protein2.amino_acids);
-
-                            int minLength = Math.Min(seq1.Length, seq2.Length);
-                            int maxLength = Math.Max(seq1.Length, seq2.Length);
+                            string s1 = p1.Value.amino_acids;
+                            string s2 = p2.Value.amino_acids;
                             int diffCount = 0;
 
+                            int minLength = Math.Min(s1.Length, s2.Length);
+                            int maxLength = Math.Max(s1.Length, s2.Length);
+
+                            // Считаем различия в общей длине
                             for (int j = 0; j < minLength; j++)
                             {
-                                if (seq1[j] != seq2[j]) diffCount++;
+                                if (s1[j] != s2[j]) diffCount++;
                             }
+                            // Добавляем остаток длины как различия
                             diffCount += (maxLength - minLength);
 
                             writer.WriteLine(diffCount);
                         }
-                        writer.WriteLine("--------------------------------------------------------------------------");
                     }
-                    else if (cmdName == "mode")
+                    else if (cmd.name == "mode")
                     {
-                        writer.WriteLine($"{cmdNum}   mode   {p1}  ");
-                        writer.WriteLine("amino-acid occurs: ");
+                        writer.WriteLine($"{num}   mode   {cmd.parameter1}");
+                        writer.WriteLine("amino-acid occurs:");
 
-                        var protein = proteins.FirstOrDefault(p => p.protein == p1);
+                        Protein? p = proteins.Any(prot => prot.name == cmd.parameter1) ? proteins.First(prot => prot.name == cmd.parameter1) : (Protein?)null;
 
-                        if (string.IsNullOrEmpty(protein.protein))
+                        if (p == null)
                         {
-                            writer.WriteLine($"MISSING: {p1}");
+                            writer.WriteLine($"MISSING: {cmd.parameter1}");
                         }
                         else
                         {
-                            string seq = RLDecoding(protein.amino_acids);
+                            string seq = p.Value.amino_acids;
                             
-                            if (string.IsNullOrEmpty(seq))
+                            // Считаем частоту каждой буквы
+                            Dictionary<char, int> counts = new Dictionary<char, int>();
+                            foreach (char ch in seq)
                             {
-                                writer.WriteLine("SEQUENCE IS EMPTY");
+                                if (counts.ContainsKey(ch)) counts[ch]++;
+                                else counts[ch] = 1;
                             }
-                            else
+
+                            // Ищем максимум с сортировкой по алфавиту при равенстве
+                            char bestChar = 'A';
+                            int maxOccurs = 0;
+
+                            foreach (var pair in counts.OrderBy(pair => pair.Key))
                             {
-                                Dictionary<char, int> counts = new Dictionary<char, int>();
-                                foreach (char ch in seq)
+                                if (pair.Value > maxOccurs)
                                 {
-                                    if (counts.ContainsKey(ch)) counts[ch]++;
-                                    else counts[ch] = 1;
+                                    maxOccurs = pair.Value;
+                                    bestChar = pair.Key;
                                 }
-
-                                var mostFrequent = counts
-                                    .OrderByDescending(kv => kv.Value)
-                                    .ThenBy(kv => kv.Key)
-                                    .First(); // Безопасно, так как мы проверили, что строка не пустая
-
-                                writer.WriteLine($"{mostFrequent.Key}          {mostFrequent.Value}");
                             }
+
+                            writer.WriteLine($"{bestChar}          {maxOccurs}");
                         }
-                        writer.WriteLine("--------------------------------------------------------------------------");
                     }
                 }
+                writer.WriteLine("--------------------------------------------------------------------------");
             }
-            Console.WriteLine($"Обработка завершена! Результат сохранен в {outputFilename}");
         }
 
-        // ТОЧКА ВХОДА (Обрабатывает по очереди 3 набора файлов)
         static void Main(string[] args)
         {
-            // Цикл от 1 до 3 для автоматической сборки имен файлов
-            for (int i = 1; i <= 3; i++)
+            // Определяем базовую папку проекта, где лежат файлы данных
+            string targetDirectory = Directory.GetCurrentDirectory();
+            
+            // Если программа запущена из папки сборки, поднимаемся выше к корню проекта
+            for (int i = 0; i < 4; i++)
             {
-                string seqFile = $"sequences{i}.txt";
-                string cmdFile = $"commands{i}.txt";
-                string outFile = $"genedata{i}.txt";
-
-                Console.WriteLine($"=== Обработка набора файлов №{i} ===");
-
-                // Проверяем, на месте ли входные файлы
-                if (File.Exists(seqFile) && File.Exists(cmdFile))
+                if (Directory.GetFiles(targetDirectory, "commands.*.txt").Length > 0)
                 {
-                    // Читаем базу белков текущего набора (например, sequences1.txt)
-                    List<GeneticData> proteins = ReadData(seqFile);
+                    break;
+                }
+                string parent = Directory.GetParent(targetDirectory)?.FullName;
+                if (parent != null) targetDirectory = parent;
+                else break;
+            }
 
-// Выполняем команды из commands1.txt и записываем результат в genedata1.txt
-CommandHandler(proteins, cmdFile, outFile);
+            // Ищем все файлы команд вида "commands.X.txt"
+            string commandFiles = Directory.GetFiles(targetDirectory, "commands.*.txt");
+
+            if (commandFiles.Length == 0)
+            {
+                Console.WriteLine($"Файлы 'commands.X.txt' не найдены: {targetDirectory}");
+                return;
+            }
+
+            // Сортируем файлы по имени, чтобы они шли по порядку: 0, 1, 2
+            Array.Sort(commandFiles);
+
+            foreach (string commandFile in commandFiles)
+            {
+                string fileNameOnly = Path.GetFileName(commandFile);
+
+                // Извлекаем номер/индекс теста из названия файла команд
+                Match match = Regex.Match(fileNameOnly, @"commands\.(.+?)\.txt");
+                if (match.Success)
+                {
+                    string index = match.Groups[1].Value;
+                    string sequenceFile = Path.Combine(targetDirectory, $"sequences.{index}.txt");
+                    string outputFile = Path.Combine(targetDirectory, $"genedata.{index}.txt");
+Console.WriteLine($"\n=== Обработка набора файлов №{index} ===");
+
+if (File.Exists(sequenceFile))
+{
+List data = ReadData(sequenceFile);
+List commands = ReadCommands(commandFile);
+CommandHandler(data, commands, outputFile);
+Console.WriteLine($"Успешно! Результаты перезаписаны в: {Path.GetFileName(outputFile)}");
 }
 else
 {
-    if (!File.Exists(seqFile)) Console.WriteLine($"Предупреждение: Файл {seqFile} не найден.");
-    if (!File.Exists(cmdFile)) Console.WriteLine($"Предупреждение: Файл {cmdFile} не найден.");
+Console.WriteLine($"Предупреждение: Файл sequences.{index}.txt не найден.");
+}
+                }
+            }
+            Console.WriteLine("\nВсе доступные тесты успешно обработаны!");
+        }
     }
-    Console.WriteLine("---------------------------------------------\n");
-    }
-    Console.WriteLine("Все наборы файлов обработаны!");
-    Console.WriteLine("Нажмите любую клавишу для выхода...");
-    Console.ReadKey();
-        }
-        }
-        }
+}
+
+
