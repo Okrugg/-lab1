@@ -1,35 +1,35 @@
-Dwight Barnette
+Округ Максим
 Genetic Searching
 --------------------------------------------------------------------------
-001   search   SIIK 
-organism				protein 
+001   search   SIIK
+organism				protein
 Homo sapiens (Human)		6.8 kDa mitochondrial proteolipid
 --------------------------------------------------------------------------
-002   search   PLML 
-organism				protein 
-Homo sapiens (Human)		Pre-T/NK cell associated protein 6H9A 
+002   search   PLML
+organism				protein
+Homo sapiens (Human)		Pre-T/NK cell associated protein 6H9A
 --------------------------------------------------------------------------
-003   search   FKIII 
-organism				protein 
+003   search   FKIII
+organism				protein
 NOT FOUND
 --------------------------------------------------------------------------
-004   diff   6.8 kDa mitochondrial proteolipid   Alcohol dehydrogenase 
-amino-acids difference: 
-81 
+004   diff   6.8 kDa mitochondrial proteolipid   Alcohol dehydrogenase
+amino-acids difference:
+81
 --------------------------------------------------------------------------
-005   diff   RNA-dependent RNA polymerase [Fragment]   Alcohol dehydrogenase 
-amino-acids difference: 
-115 
+005   diff   RNA-dependent RNA polymerase [Fragment]   Alcohol dehydrogenase   фвывыв
+amino-acids difference:
+MISSING: Alcohol dehydrogenase   фвывыв
 --------------------------------------------------------------------------
-006   diff   Cecropin   Pre-T/NK cell associated protein 6H9A 
-amino-acids difference: 
+006   diff   Cecropin   Pre-T/NK cell associated protein 6H9A
+amino-acids difference:
 56
 --------------------------------------------------------------------------
-007   mode   Cecropin  
-amino-acid occurs: 
+007   mode   Cecropin
+amino-acid occurs:
 A          5
 --------------------------------------------------------------------------
-008   mode   Alcohol dehydrogenase  
-amino-acid occurs: 
+008   mode   Alcohol dehydrogenase
+amino-acid occurs:
 V          11
 --------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-Dwight Barnette
+Округ Максим
 Genetic Searching
 --------------------------------------------------------------------------
 001   diff   PREDICTED: similar to double homeobox   metallothionein 2A
@@ -6,8 +6,8 @@ amino-acids difference:
 105
 --------------------------------------------------------------------------
 002   search   VLLYISSVYVLPRYN
-organism                 protein
-Fission Yeast Fungus     ATPase 8 Schizosaccharomyces pombe
+organism				protein
+Fission Yeast Fungus		ATPase 8 Schizosaccharomyces pombe
 --------------------------------------------------------------------------
 003   mode   C-FLIP AMPA glutamate
 amino-acid occurs:
@@ -18,8 +18,8 @@ amino-acids difference:
 0
 --------------------------------------------------------------------------
 005   search   LIVM
-organism                 protein
-Budding (baking) Yeast     Putative protein of Saccharomyces cerevisiae
+organism				protein
+Budding (baking) Yeast		Putative protein of Saccharomyces cerevisiae
 --------------------------------------------------------------------------
 006   mode   metallothionein 2A
 amino-acid occurs:
